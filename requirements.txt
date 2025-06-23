@@ -13,3 +13,4 @@ pikepdf
 sentence-transformers
 elevenlabs
 streamlit
+langchain-chroma

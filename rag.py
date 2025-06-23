@@ -3,7 +3,7 @@ import os
 import logging
 from langchain_community.document_loaders import UnstructuredPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_ollama import OllamaEmbeddings
 from langchain.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_ollama import ChatOllama
@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 # Constants
 DOC_PATH = "./documents/Academic-Regulations.pdf"
-MODEL_NAME = "deepseek-r1:7b"
+MODEL_NAME = "gemma3:4b"
 EMBEDDING_MODEL = "nomic-embed-text"
 VECTOR_STORE_NAME = "simple-rag"
 PERSIST_DIRECTORY = "./chroma_db"
@@ -74,7 +74,6 @@ def load_vector_db():
             collection_name=VECTOR_STORE_NAME,
             persist_directory=PERSIST_DIRECTORY,
         )
-        vector_db.persist()
         logging.info("Vector database created and persisted.")
     return vector_db
 
@@ -120,12 +119,26 @@ Question: {question}
 
 
 def main():
-    st.title("Document Assistant")
+    st.title("Document Assistant Chat")
 
-    # User input
-    user_input = st.text_input("Enter your question:", "")
+    # Initialize chat history in session state
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    # Display chat history
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # Chat input at the bottom
+    user_input = st.chat_input("Ask a question about the document...")
 
     if user_input:
+        # Display user message
+        with st.chat_message("user"):
+            st.markdown(user_input)
+        st.session_state.messages.append({"role": "user", "content": user_input})
+
         with st.spinner("Generating response..."):
             try:
                 # Initialize the language model
@@ -146,12 +159,12 @@ def main():
                 # Get the response
                 response = chain.invoke(input=user_input)
 
-                st.markdown("**Assistant:**")
-                st.write(response)
+                # Display assistant message
+                with st.chat_message("assistant"):
+                    st.markdown(response)
+                st.session_state.messages.append({"role": "assistant", "content": response})
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
-    else:
-        st.info("Please enter a question to get started.")
 
 
 if __name__ == "__main__":
