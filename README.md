@@ -1,4 +1,4 @@
-# VIT College Assistant
+# College Assistant
 
 A Streamlit-based app that uses **LangChain**, **Ollama**, and **Chroma** to enable semantic search and question answering on the **VIT College Regulations** PDF document using Retrieval-Augmented Generation (RAG).
 
